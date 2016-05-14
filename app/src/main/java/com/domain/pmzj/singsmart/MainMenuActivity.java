@@ -131,6 +131,7 @@ public class MainMenuActivity extends AppCompatActivity {
 
 
     ArrayList<Integer> timePitch = new ArrayList<>();
+    double relativnaPravilnost = 0;
 
     //poveda v centih koliko si dalec
     private int tuningCent( int refPitch, int measPitch ){ //reference pitch and measured pitch
@@ -142,15 +143,18 @@ public class MainMenuActivity extends AppCompatActivity {
 
         int[] measure = new int[timePitch.size()];
         int tms = 0;    //time in miliseconds
-
+        relativnaPravilnost = 0;
+        int st = 0;
         for(int i = 0; i<timePitch.size();i++){
             tms += (1000 * 1024/22050);    //time in miliseconds
             int j = 0; //j bo index za nas trenutni refrencePitch
             while( opp[j].onsetTimeMs < tms )j++;
             //measure that shit
             measure[i] = tuningCent(opp[j].pitchInHz, timePitch.get(i));
-
+            if( Math.abs(measure[i]) < 5 ) stPravilnih++;
         }
+
+        relativnaPravilnost = stPravilnih / timePitch.size();
 
         return measure;
     }
