@@ -1,0 +1,39 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0099cc"
+    tools:context=".MainMenuActivity"
+    android:id="@+id/fLayout">
+
+    <!-- The primary full-screen view. This can be replaced with whatever view
+         is needed to present your content, e.g. VideoView, SurfaceView,
+         TextureView, etc. -->
+
+    <!-- This FrameLayout insets its children based on system windows using
+         android:fitsSystemWindows. -->
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="record"
+        android:id="@+id/record"
+        android:layout_gravity="left|top"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="0dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="0dp"
+        android:visibility="gone" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="play"
+        android:id="@+id/play"
+        android:layout_gravity="center_horizontal|top"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="296dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="0dp"
+        android:visibility="gone" />
+</RelativeLayout>
