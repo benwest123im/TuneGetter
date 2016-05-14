@@ -1,25 +1,27 @@
 package com.domain.pmzj.singsmart;
 
-import android.annotation.SuppressLint;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.os.AsyncTask;
 import android.os.Environment;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
@@ -48,6 +50,8 @@ public class MainMenuActivity extends AppCompatActivity {
     private Button   mPlayButton = null;
     private MediaPlayer mPlayer = null;
 
+    private Button sendButton = null;
+    private Button getButton = null;
     boolean mStartRecording = true;
     boolean mStartPlaying = true;
 
@@ -67,6 +71,8 @@ public class MainMenuActivity extends AppCompatActivity {
 
         mRecordButton = (Button)findViewById(R.id.record);
         mPlayButton = (Button)findViewById(R.id.play);
+        sendButton = (Button)findViewById(R.id.send_button);
+        getButton = (Button)findViewById(R.id.get_button);
 
         mRecordButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -117,6 +123,29 @@ public class MainMenuActivity extends AppCompatActivity {
         dispatcher.addAudioProcessor(p);
         new Thread(dispatcher,"Audio Dispatcher").start();
 
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new HttpAsyncTaskPost().execute("http://52.37.232.67/results");
+            }
+        });
+
+        getButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new HttpAsyncTaskPost().execute("http://52.37.232.67/results?user_id=1");
+            }
+        });
+
+        new Timer().scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Log.d(LOG_TAG, "lala");
+                new HttpAsyncTaskPost().execute("http://52.37.232.67/results?user_id=1");
+
+            }
+        }, 0, 1000);
+
     }
 
     @Override
@@ -124,6 +153,32 @@ public class MainMenuActivity extends AppCompatActivity {
         super.onPostCreate(savedInstanceState);
     }
 
+    private class HttpAsyncTaskPost extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+
+            return HttpHandler.POST(urls[0], "lalala");
+        }
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+            Toast.makeText(getBaseContext(), "Data Sent!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private class HttpAsyncTaskGet extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+
+            return HttpHandler.GET(urls[0]);
+        }
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+            Toast.makeText(getBaseContext(), "Received!", Toast.LENGTH_LONG).show();
+            Log.d(LOG_TAG, result);
+        }
+    }
 
     private void onRecord(boolean start) {
         if (start) {
