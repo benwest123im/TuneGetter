@@ -39,6 +39,9 @@ public class MainMenuActivity extends AppCompatActivity {
     private Button   mPlayButton = null;
     private MediaPlayer mPlayer = null;
 
+    boolean mStartRecording = true;
+    boolean mStartPlaying = true;
+
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
 
@@ -56,13 +59,34 @@ public class MainMenuActivity extends AppCompatActivity {
         mRecordButton = (Button)findViewById(R.id.record);
         mPlayButton = (Button)findViewById(R.id.play);
 
+        mRecordButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onRecord(mStartRecording);
+                if (mStartRecording) {
+                    mRecordButton.setText("Stop recording");
+                } else {
+                     mRecordButton.setText("Start recording");
+                }
+                mStartRecording = !mStartRecording;
+            }
+        });
 
-        RecordButton b = new RecordButton(mRecordButton.getContext());
-        PlayButton b2 = new PlayButton(mPlayButton.getContext());
+        mRecordButton.setText("Start recording");
+        mPlayButton.setText("Start playing");
 
-        fLayout = (RelativeLayout)findViewById(R.id.fLayout);
-        fLayout.addView(b);
-        fLayout.addView(b2);
+        mPlayButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onPlay(mStartPlaying);
+                if (mStartPlaying) {
+                    mPlayButton.setText("Stop playing");
+                } else {
+                    mPlayButton.setText("Start playing");
+                }
+                mStartPlaying = !mStartPlaying;
+            }
+        });
 
     }
 
@@ -124,50 +148,6 @@ public class MainMenuActivity extends AppCompatActivity {
         mRecorder.stop();
         mRecorder.release();
         mRecorder = null;
-    }
-
-    class RecordButton extends Button {
-        boolean mStartRecording = true;
-
-        OnClickListener clicker = new OnClickListener() {
-            public void onClick(View v) {
-                onRecord(mStartRecording);
-                if (mStartRecording) {
-                    setText("Stop recording");
-                } else {
-                    setText("Start recording");
-                }
-                mStartRecording = !mStartRecording;
-            }
-        };
-
-        public RecordButton(Context ctx) {
-            super(ctx);
-            setText("Start recording");
-            setOnClickListener(clicker);
-        }
-    }
-
-    class PlayButton extends Button {
-        boolean mStartPlaying = true;
-
-        OnClickListener clicker = new OnClickListener() {
-            public void onClick(View v) {
-                onPlay(mStartPlaying);
-                if (mStartPlaying) {
-                    setText("Stop playing");
-                } else {
-                    setText("Start playing");
-                }
-                mStartPlaying = !mStartPlaying;
-            }
-        };
-
-        public PlayButton(Context ctx) {
-            super(ctx);
-            setText("Start playing");
-            setOnClickListener(clicker);
-        }
     }
 
     @Override
