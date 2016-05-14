@@ -15,5 +15,7 @@ public class Params {
     public static final String GET_CHALLENGES = "/challenges";
     public static final String POST_CHALLENGES = "/challenges";
 
+    public static final int NUM_LESSONS = 5;
+
 
 }

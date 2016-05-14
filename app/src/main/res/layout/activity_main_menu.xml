@@ -41,7 +41,8 @@
         android:text="pitch"
         android:id="@+id/textView"
         android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        />
 
     <Button
         android:layout_width="wrap_content"
@@ -59,4 +60,15 @@
         android:id="@+id/get_button"
         android:layout_alignTop="@+id/send_button"
         android:layout_alignParentEnd="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lessons"
+        android:id="@+id/lessons_button"
+        android:layout_below="@+id/record"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="54dp"
+        android:onClick="onClickLessons"
+        />
 </RelativeLayout>

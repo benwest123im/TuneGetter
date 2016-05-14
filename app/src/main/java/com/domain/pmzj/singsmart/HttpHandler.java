@@ -112,4 +112,45 @@ public class HttpHandler {
         return result;
 
     }
+
+    public static class HttpAsyncTaskPost extends AsyncTask<String, Void, JSONObject> {
+        private JSONObject toSend;
+
+        public HttpAsyncTaskPost(JSONObject toSend) {
+            this.toSend = toSend;
+        }
+
+        @Override
+        protected JSONObject doInBackground(String... urls) {
+
+            try {
+                return HttpHandler.POST(urls[0], toSend);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return new JSONObject();
+            }
+        }
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(JSONObject result) {
+        }
+    }
+
+    // Task for receiving
+    public static class HttpAsyncTaskGet extends AsyncTask<String, Void, JSONObject> {
+
+        @Override
+        protected JSONObject doInBackground(String... urls) {
+            try {
+                return HttpHandler.GET(urls[0]);
+            } catch (JSONException e) {
+                return new JSONObject();
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            Log.d(LOG_TAG, result.toString());
+        }
+    }
 }

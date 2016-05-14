@@ -61,6 +61,8 @@ public class MainMenuActivity extends AppCompatActivity {
 
     private Button sendButton = null;
     private Button getButton = null;
+
+    private Button lessonsButton = null;
     boolean mStartRecording = true;
     boolean mStartPlaying = true;
 
@@ -77,6 +79,7 @@ public class MainMenuActivity extends AppCompatActivity {
         mPlayButton = (Button)findViewById(R.id.play);
         sendButton = (Button)findViewById(R.id.send_button);
         getButton = (Button)findViewById(R.id.get_button);
+        lessonsButton = (Button)findViewById(R.id.lessons_button);
 
         mRecordButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -143,14 +146,6 @@ public class MainMenuActivity extends AppCompatActivity {
             }
         });
 
-        getButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                List<UserResult> res = getResultsForUser(Params.CURR_USER_ID);
-                Log.d(LOG_TAG, res.toString());
-
-            }
-        });
 
 //        new Timer().scheduleAtFixedRate(new TimerTask() {
 //            @Override
@@ -162,35 +157,7 @@ public class MainMenuActivity extends AppCompatActivity {
 
     }
 
-    private List<UserResult> getResultsForUser(int userId) {
-        List<UserResult> userResults = new ArrayList<>();
-        String url = Params.SERVER + Params.GET_RESULTS + "?user_id=" + userId;
-        try {
-            JSONObject result = new HttpAsyncTaskGet().execute(url).get();
-            JSONArray results = result.getJSONArray("results");
 
-            if (results != null) {
-                for (int k = 0; k < results.length(); k++) {
-                    JSONObject jo = results.getJSONObject(k);
-
-                    String score = jo.getString("score");
-                    String challengeId = jo.getString("challenge_id");
-                    JSONArray scores = jo.getJSONArray("scores_by_time");
-
-                    List<Float> listResults = new ArrayList<Float>();
-                    if (scores != null) {
-                        for (int i = 0; i <scores.length(); i++)
-                            listResults.add(Float.parseFloat(scores.get(i).toString()));
-                    }
-                    userResults.add(new UserResult(userId, Integer.parseInt(challengeId), Float.parseFloat(score), listResults));
-                }
-            }
-            return userResults;
-        } catch (InterruptedException | ExecutionException | JSONException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
 
     private boolean publishUserResult(UserResult result) {
         String url = Params.SERVER + Params.POST_RESULTS;
@@ -211,7 +178,7 @@ public class MainMenuActivity extends AppCompatActivity {
             jsonObject.accumulate("scores_by_time", new JSONArray(s));
             Log.d(LOG_TAG, jsonObject.toString());
 
-            new HttpAsyncTaskPost(jsonObject).execute(url);
+            new HttpHandler.HttpAsyncTaskPost(jsonObject).execute(url);
         } catch (JSONException e) {
             e.printStackTrace();
             return false;
@@ -224,48 +191,6 @@ public class MainMenuActivity extends AppCompatActivity {
         super.onPostCreate(savedInstanceState);
     }
 
-    private class HttpAsyncTaskPost extends AsyncTask<String, Void, JSONObject> {
-        private JSONObject toSend;
-
-        public HttpAsyncTaskPost(JSONObject toSend) {
-            this.toSend = toSend;
-        }
-
-        @Override
-        protected JSONObject doInBackground(String... urls) {
-
-            try {
-                return HttpHandler.POST(urls[0], toSend);
-            } catch (JSONException e) {
-                e.printStackTrace();
-                return new JSONObject();
-            }
-        }
-        // onPostExecute displays the results of the AsyncTask.
-        @Override
-        protected void onPostExecute(JSONObject result) {
-            Toast.makeText(getBaseContext(), "Data Sent!", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    // Task for receiving
-    private class HttpAsyncTaskGet extends AsyncTask<String, Void, JSONObject> {
-
-        @Override
-        protected JSONObject doInBackground(String... urls) {
-            try {
-                return HttpHandler.GET(urls[0]);
-            } catch (JSONException e) {
-                return new JSONObject();
-            }
-        }
-
-        @Override
-        protected void onPostExecute(JSONObject result) {
-            Toast.makeText(getBaseContext(), "Received!", Toast.LENGTH_LONG).show();
-            Log.d(LOG_TAG, result.toString());
-        }
-    }
 
     private void onRecord(boolean start) {
         if (start) {
@@ -333,6 +258,13 @@ public class MainMenuActivity extends AppCompatActivity {
             mPlayer.release();
             mPlayer = null;
         }
+    }
+
+    // ON CLICK CALLBACKS
+    public void onClickLessons(View view) {
+        Log.d(LOG_TAG, "eehehe");
+        Intent intent = new Intent(this, LessonsActivity.class);
+        startActivity(intent);
     }
 
 }
