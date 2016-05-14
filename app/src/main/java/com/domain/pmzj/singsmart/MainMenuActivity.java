@@ -17,13 +17,30 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import java.io.IOException;
+import java.util.ArrayList;
+
+import be.tarsos.dsp.AudioDispatcher;
+import be.tarsos.dsp.AudioEvent;
+import be.tarsos.dsp.AudioProcessor;
+import be.tarsos.dsp.io.android.AudioDispatcherFactory;
+import be.tarsos.dsp.pitch.PitchDetectionHandler;
+import be.tarsos.dsp.pitch.PitchDetectionResult;
+import be.tarsos.dsp.pitch.PitchProcessor;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
+
+class OnsetPitchPair {
+    public long onsetTimeMs;
+    public int pitchInHz;
+}
+
+
 public class MainMenuActivity extends AppCompatActivity {
 
     /**
@@ -88,6 +105,54 @@ public class MainMenuActivity extends AppCompatActivity {
             }
         });
 
+        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050,1024,0);
+
+        PitchDetectionHandler pdh = new PitchDetectionHandler() {
+            @Override
+            public void handlePitch(PitchDetectionResult result, AudioEvent e) {
+                final float pitchInHz = result.getPitch();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        TextView text = (TextView) findViewById(R.id.textView);
+                        text.setText("" + pitchInHz);
+                    }
+                });
+                timePitch.add(pitchInHz);
+            }
+        };
+
+        AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, pdh);
+        dispatcher.addAudioProcessor(p);
+        new Thread(dispatcher,"Audio Dispatcher").start();
+
+    }
+
+
+
+    ArrayList<Integer> timePitch = new ArrayList<>();
+
+    //poveda v centih koliko si dalec
+    private int tuningCent( int refPitch, int measPitch ){ //reference pitch and measured pitch
+        return (int)(3986*Math.log10(measPitch/refPitch));
+    }
+
+    //gre cez seynam in porihta
+    private int[] evaluate(OnsetPitchPair[] opp){
+
+        int[] measure = new int[timePitch.size()];
+        int tms = 0;    //time in miliseconds
+
+        for(int i = 0; i<timePitch.size();i++){
+            tms += (1000 * 1024/22050);    //time in miliseconds
+            int j = 0; //j bo index za nas trenutni refrencePitch
+            while( opp[j].onsetTimeMs < tms )j++;
+            //measure that shit
+            measure[i] = tuningCent(opp[j].pitchInHz, timePitch.get(i));
+
+        }
+
+        return measure;
     }
 
     @Override
@@ -127,6 +192,8 @@ public class MainMenuActivity extends AppCompatActivity {
         mPlayer.release();
         mPlayer = null;
     }
+
+
 
     private void startRecording() {
         mRecorder = new MediaRecorder();
