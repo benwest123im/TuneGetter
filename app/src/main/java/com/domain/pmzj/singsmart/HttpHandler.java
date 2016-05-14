@@ -16,6 +16,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -25,7 +26,7 @@ public class HttpHandler {
 
     private static final String LOG_TAG = "HTTP_HANDLER";
 
-    public static String POST(String url, String data){
+    public static JSONObject POST(String url, JSONObject jo) throws JSONException {
         InputStream inputStream = null;
         String result = "";
         try {
@@ -38,20 +39,9 @@ public class HttpHandler {
 
             String json = "";
 
-            // 3. build jsonObject
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.accumulate("user_id", "1");
-            jsonObject.accumulate("score", "0.5");
-            jsonObject.accumulate("scores_by_time", new JSONArray());
 
             // 4. convert JSONObject to JSON to String
-            json = jsonObject.toString();
-
-            Log.d(LOG_TAG, json);
-
-            // ** Alternative way to convert Person object to JSON string usin Jackson Lib
-            // ObjectMapper mapper = new ObjectMapper();
-            // json = mapper.writeValueAsString(person);
+            json = jo.toString();
 
             // 5. set json to StringEntity
             StringEntity se = new StringEntity(json);
@@ -80,23 +70,11 @@ public class HttpHandler {
         }
 
         // 11. return result
-        return result;
-    }
-
-    private static String convertInputStreamToString(InputStream inputStream) throws IOException {
-        BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
-        String line = "";
-        String result = "";
-        while((line = bufferedReader.readLine()) != null)
-            result += line;
-
-        inputStream.close();
-        return result;
-
+        return jo;
     }
 
     // GET
-    public static String GET(String url){
+    public static JSONObject GET(String url) throws JSONException {
         InputStream inputStream = null;
         String result = "";
         try {
@@ -120,7 +98,18 @@ public class HttpHandler {
             Log.d("InputStream", e.getLocalizedMessage());
         }
 
-        return result;
+        return new JSONObject(result);
     }
 
+    private static String convertInputStreamToString(InputStream inputStream) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
+        String line = "";
+        String result = "";
+        while((line = bufferedReader.readLine()) != null)
+            result += line;
+
+        inputStream.close();
+        return result;
+
+    }
 }
