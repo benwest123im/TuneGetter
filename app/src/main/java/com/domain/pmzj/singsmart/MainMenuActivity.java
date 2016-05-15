@@ -239,7 +239,7 @@ public class MainMenuActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         int PPQ = sourceMidiFile.getResolution();
-        int bpm = 60;
+        int bpm = 90;
 
         MidiTrack trackToParse = sourceMidiFile.getTracks().get(0);
         Iterator<MidiEvent> iter = trackToParse.getEvents().iterator();
