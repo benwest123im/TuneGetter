@@ -20,6 +20,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
@@ -28,6 +29,11 @@ import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 import be.tarsos.dsp.pitch.PitchDetectionHandler;
 import be.tarsos.dsp.pitch.PitchDetectionResult;
 import be.tarsos.dsp.pitch.PitchProcessor;
+
+class OnsetPitchPair {
+    public long onsetTimeMs;
+    public double pitchInHz;
+}
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -75,7 +81,7 @@ public class MainMenuActivity extends AppCompatActivity {
                 if (mStartRecording) {
                     mRecordButton.setText("Stop recording");
                 } else {
-                     mRecordButton.setText("Start recording");
+                    mRecordButton.setText("Start recording");
                 }
                 mStartRecording = !mStartRecording;
             }
@@ -99,7 +105,6 @@ public class MainMenuActivity extends AppCompatActivity {
 
         AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050,1024,0);
 
-
         PitchDetectionHandler pdh = new PitchDetectionHandler() {
             @Override
             public void handlePitch(PitchDetectionResult result, AudioEvent e) {
@@ -108,16 +113,57 @@ public class MainMenuActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         TextView text = (TextView) findViewById(R.id.textView);
-                        text.setText("" + pitchInHz);
+                        text.setText(" "+pitchInHz+" ");
                     }
                 });
+                timePitch.add(((double)pitchInHz));
             }
         };
+
         AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, pdh);
         dispatcher.addAudioProcessor(p);
         new Thread(dispatcher,"Audio Dispatcher").start();
-
     }
+
+
+
+
+
+
+
+    ArrayList<Double> timePitch = new ArrayList<>();
+    double relativnaPravilnost = 0;
+
+    //poveda v centih koliko si dalec
+    private double tuningCent( double refPitch, double measPitch ){ //reference pitch and measured pitch
+        return 3986*Math.log10(measPitch/refPitch);
+    }
+
+    //gre cez seynam in porihta
+    private double[] evaluate(OnsetPitchPair[] opp){
+
+        double[] measure = new double[timePitch.size()];
+        double tms = 0;    //time in miliseconds
+        relativnaPravilnost = 0;
+        int st = 0;
+        int stPravilnih = 0;
+        for(int i = 0; i<timePitch.size();i++){
+            tms += (1000 * 1024/22050);    //time in miliseconds
+            int j = 0; //j bo index za nas trenutni refrencePitch
+            while( opp[j].onsetTimeMs < tms )j++;
+            //measure that shit
+            measure[i] = tuningCent(opp[j].pitchInHz, timePitch.get(i));
+            if( Math.abs(measure[i]) < 5 ) stPravilnih++;
+        }
+
+        relativnaPravilnost = stPravilnih / timePitch.size();
+
+        return measure;
+    }
+
+
+
+
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
