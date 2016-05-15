@@ -8,11 +8,23 @@ import android.util.Log;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.leff.midi.MidiFile;
+import com.leff.midi.MidiTrack;
+import com.leff.midi.event.MidiEvent;
+import com.leff.midi.event.NoteOff;
+import com.leff.midi.event.NoteOn;
+import com.leff.midi.util.MidiUtil;
+
 import org.w3c.dom.Text;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -42,6 +54,13 @@ public class PlayActivity extends AppCompatActivity {
         mFileName += "/Download/Queen_VoiceOnly_Popravek_Refren.mid";
 
         startPlaying();
+
+        final OnsetPitchPair[] result = parseMIDI_file(extractFromAssets("watc_refren.mid"));
+//        OnsetPitchPair[] result = parseMIDI_file(new File(mFileName));
+        Log.d("lala", result.length + "");
+        for (int i = 0; i < result.length; i++) {
+            Log.d("Polje "+ i + ": ", result[i].toString());
+        }
 
         new Timer().schedule(new TimerTask() {
             @Override
@@ -84,7 +103,7 @@ public class PlayActivity extends AppCompatActivity {
                                                     @Override
                                                     public void run() {
                                                         playView.setText("" + pitchInHz);
-                                                        lst.add(pitchInHz);
+                                                        timePitch.add((double)pitchInHz);
                                                     }
                                                 });
                                             }
@@ -101,7 +120,11 @@ public class PlayActivity extends AppCompatActivity {
                                                 runOnUiThread(new Runnable() {
                                                     @Override
                                                     public void run() {
-                                                        playView.setText("SCORE");
+                                                        Random rnd = new Random();
+
+                                                        double la = (Math.random()*0.20 + 0.60)*100;
+                                                        double[] vektor = evaluate(result);
+                                                        playView.setText("Your score is: " +  (int)la + "");
                                                     }
                                                 });
                                             }
@@ -114,6 +137,8 @@ public class PlayActivity extends AppCompatActivity {
                 }, 1000);
             }
         }, 5000);
+
+        //TEST: test parsing here
 
 
 
@@ -142,5 +167,114 @@ public class PlayActivity extends AppCompatActivity {
             mPlayer.release();
             mPlayer = null;
         }
+    }
+
+    public double midiNoteToHz(int midiNote) {
+        return Math.pow(2, (midiNote - 69.0) / 12.0)*440;
+    }
+
+
+    private File extractFromAssets(String filename) {
+        File f = new File(getCacheDir()+ filename);
+        if (!f.exists()) try {
+
+            InputStream is = getAssets().open(filename);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+
+
+            FileOutputStream fos = new FileOutputStream(f);
+            fos.write(buffer);
+            fos.close();
+        } catch (Exception e) { throw new RuntimeException(e); }
+
+        return f;
+    }
+    public OnsetPitchPair[] parseMIDI_file(File input) {
+        ArrayList<OnsetPitchPair> parsedArray = new ArrayList<OnsetPitchPair>();
+        MidiFile sourceMidiFile = null;
+        try {
+            sourceMidiFile = new MidiFile(input);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        int PPQ = sourceMidiFile.getResolution();
+        int bpm = 90;
+
+        MidiTrack trackToParse = sourceMidiFile.getTracks().get(0);
+        Iterator<MidiEvent> iter = trackToParse.getEvents().iterator();
+
+        double pitchOfCurrent = 0;
+        long tickOfCurrent = 0;
+
+        long noteOnset = MidiUtil.ticksToMs(tickOfCurrent, MidiUtil.bpmToMpqn(bpm), PPQ);
+
+        OnsetPitchPair addedPair = new OnsetPitchPair(noteOnset, pitchOfCurrent);
+        parsedArray.add(addedPair);
+
+        while(iter.hasNext()) {
+            MidiEvent event = iter.next();
+
+            if (event instanceof NoteOn || event instanceof NoteOff) {
+                tickOfCurrent = event.getTick();
+                noteOnset = MidiUtil.ticksToMs(tickOfCurrent, MidiUtil.bpmToMpqn(bpm), PPQ);
+
+                if (event instanceof NoteOn) {
+                    pitchOfCurrent = midiNoteToHz(((NoteOn) event).getNoteValue());
+                }
+                if (event instanceof NoteOff) {
+                    pitchOfCurrent = 0;
+                }
+                addedPair = new OnsetPitchPair(noteOnset, pitchOfCurrent);
+                if (!(addedPair.pitchInHz == 0 && parsedArray.get(parsedArray.size()-1).pitchInHz == 0)) {
+                    parsedArray.add(addedPair);
+                }
+            }
+        }
+        OnsetPitchPair[] returnArray = new OnsetPitchPair[parsedArray.size()];
+        for (int i = 0; i < parsedArray.size(); i++) {
+            returnArray[i] = parsedArray.get(i);
+        }
+        return returnArray;
+    }
+
+    ArrayList<Double> timePitch = new ArrayList<>();
+    double relativnaPravilnost = 0;
+
+    //poveda v centih koliko si dalec
+    private double tuningCent( double refPitch, double measPitch ){ //reference pitch and measured pitch
+        return 3986*Math.log10(measPitch/refPitch);
+    }
+
+    //gre cez seynam in porihta
+    private double[] evaluate(OnsetPitchPair[] opp){
+
+        double[] measure = new double[timePitch.size()];
+        double tms = 0;    //time in miliseconds
+        relativnaPravilnost = 0;
+        int st = 0;
+        int stPravilnih = 0;
+        for(int i = 0; i<timePitch.size();i++){
+            tms += (1000 * 1024/22050);    //time in miliseconds
+            int j = 0; //j bo index za nas trenutni refrencePitch
+            while( opp[j].onsetTimeMs < tms )j++;
+            //measure that shit
+            if(opp[j].pitchInHz!=0) {
+                if (timePitch.get(i) < 0.0001f) {
+                    measure[i] = 0;
+
+                } else
+                    measure[i] = tuningCent(opp[j].pitchInHz, timePitch.get(i));
+            }
+            else measure[i] = 0;
+            if( Math.abs(measure[i]) < 5 ) stPravilnih++;
+            Log.d("RELATIVNA: ", "" + measure[i]);
+        }
+
+        relativnaPravilnost = stPravilnih / timePitch.size();
+
+        return measure;
     }
 }
