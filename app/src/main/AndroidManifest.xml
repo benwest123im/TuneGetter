@@ -28,6 +28,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".PlayActivity"></activity>
+        <activity android:name=".ChallengesActivity"></activity>
     </application>
 
 </manifest>

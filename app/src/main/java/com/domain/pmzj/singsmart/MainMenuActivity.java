@@ -12,8 +12,10 @@ import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v7.internal.widget.AdapterViewCompat;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -189,12 +191,14 @@ public class MainMenuActivity extends AppCompatActivity {
 //                        challenges.add(c2);
 //
 //                }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        fillChallengeList(challenges);
-                    }
-                });
+                if (challenges != null) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            fillChallengeList(challenges);
+                        }
+                    });
+                }
             }
         }, 0, 1000);
 
@@ -204,9 +208,11 @@ public class MainMenuActivity extends AppCompatActivity {
     private void fillChallengeList(List<Challenge> challenges) {
         List<String> scores = new ArrayList<String>();
 
-        for(Challenge c : challenges) {
-            scores.add("Challenge " + c.getChallengeId() + " from " + c.getFromUser());
-        }
+        if (!challenges.isEmpty())
+            scores.add("Queen - We're the champions from Martin");
+//        for(Challenge c : challenges) {
+//            scores.add("Challenge " + c.getChallengeId() + " from " + c.getFromUser());
+//        }
 
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
                 this,
@@ -215,6 +221,13 @@ public class MainMenuActivity extends AppCompatActivity {
 
         // Bind to our new adapter.
         challengeList.setAdapter(arrayAdapter);
+        challengeList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(MainMenuActivity.this, ChallengesActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private List<Challenge> getChallengesForUser(int userId) {
@@ -243,7 +256,6 @@ public class MainMenuActivity extends AppCompatActivity {
             }
             return challengeList;
         } catch (InterruptedException | ExecutionException | JSONException e) {
-            e.printStackTrace();
             return null;
         }
     }
