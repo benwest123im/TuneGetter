@@ -84,7 +84,8 @@
             android:id="@+id/send_challenge_button"
             android:layout_below="@+id/lessons_button"
             android:layout_centerHorizontal="true"
-            android:layout_gravity="center_horizontal" />
+            android:layout_gravity="center_horizontal"
+            android:onClick="onClickSendChallenge" />
 
         <ListView
             android:layout_width="match_parent"

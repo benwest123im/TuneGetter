@@ -337,9 +337,13 @@ public class MainMenuActivity extends AppCompatActivity {
 
     // ON CLICK CALLBACKS
     public void onClickLessons(View view) {
-        Log.d(LOG_TAG, "eehehe");
         Intent intent = new Intent(this, LessonsActivity.class);
         startActivity(intent);
     }
 
+    public void onClickSendChallenge(View view) {
+        Intent intent = new Intent(this, SendChallengeActivity.class);
+        startActivity(intent);
+
+    }
 }
