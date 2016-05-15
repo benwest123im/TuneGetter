@@ -51,7 +51,7 @@ public class SendChallengeActivity extends ListActivity {
     protected void onListItemClick(ListView l, View v, int position, long id) {
         Log.d(LOG_TAG, userIds.get(position) + " ");
 
-        int challengeId = 2;
+        String challengeId = "2";
         int userId = userIds.get(position);
         float[] tmp = new float[]{0.3f, 0f, 0.9f, 1.0f};
         List<Float> lst = new ArrayList<Float>();
@@ -70,7 +70,6 @@ public class SendChallengeActivity extends ListActivity {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.accumulate("from_user_id", challenge.getFromUser() + "");
-            jsonObject.accumulate("challenge_id", challenge.getChallengeId() + "");
             jsonObject.accumulate("to_user_id", challenge.getToUser() + "");
 
             String s = "[";
@@ -79,7 +78,7 @@ public class SendChallengeActivity extends ListActivity {
             for (Float f : challenge.getPitchesByTime())
                 s += f + ",";
             s = s.substring(0, s.length()-1) + "]";
-            jsonObject.accumulate("scores_by_time", new JSONArray(s));
+            jsonObject.accumulate("pitches_by_time", new JSONArray(s));
             Log.d(LOG_TAG, jsonObject.toString());
 
             new HttpHandler.HttpAsyncTaskPost(jsonObject).execute(url);

@@ -156,25 +156,25 @@ public class MainMenuActivity extends AppCompatActivity {
         new Timer().scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-//                List<Challenge> challenges = getChallengesForUser(Params.CURR_USER_ID);
-                final List<Challenge> challenges = new ArrayList<Challenge>();
-
-                float[] tmp = new float[]{0.3f, 0f, 0.9f, 1.0f};
-                List<Float> lst = new ArrayList<Float>();
-                for (int i = 0; i < tmp.length; i++)
-                    lst.add(tmp[i]);
-
-                Challenge c = new Challenge(0, Params.CURR_USER_ID, 1, lst);
-                challenges.add(c);
-
-                if (Math.random() < 0.5) {
-                    Challenge c2 = new Challenge(3, Params.CURR_USER_ID, 5, lst);
-                    challenges.add(c2);
-
-                    if(Math.random() < 0.5)
-                        challenges.add(c2);
-
-                }
+                final List<Challenge> challenges = getChallengesForUser(Params.CURR_USER_ID);
+//                final List<Challenge> challenges = new ArrayList<Challenge>();
+//
+//                float[] tmp = new float[]{0.3f, 0f, 0.9f, 1.0f};
+//                List<Float> lst = new ArrayList<Float>();
+//                for (int i = 0; i < tmp.length; i++)
+//                    lst.add(tmp[i]);
+//
+//                Challenge c = new Challenge(0, Params.CURR_USER_ID, 1, lst);
+//                challenges.add(c);
+//
+//                if (Math.random() < 0.5) {
+//                    Challenge c2 = new Challenge(3, Params.CURR_USER_ID, 5, lst);
+//                    challenges.add(c2);
+//
+//                    if(Math.random() < 0.5)
+//                        challenges.add(c2);
+//
+//                }
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -204,7 +204,7 @@ public class MainMenuActivity extends AppCompatActivity {
 
     private List<Challenge> getChallengesForUser(int userId) {
         List<Challenge> challengeList = new ArrayList<>();
-        String url = Params.SERVER + Params.GET_CHALLENGES + "?user_id=" + userId;
+        String url = Params.SERVER + Params.GET_CHALLENGES + "?to_user_id=" + userId;
         try {
             JSONObject result = new HttpHandler.HttpAsyncTaskGet().execute(url).get();
             JSONArray challenges = result.getJSONArray("challenges");
@@ -215,7 +215,7 @@ public class MainMenuActivity extends AppCompatActivity {
 
                     String from = jo.getString("from_user_id");
                     String to = jo.getString("to_user_id");
-                    String challengeId = jo.getString("challenge_id");
+                    String challengeId = jo.getString("id");
                     JSONArray scores = jo.getJSONArray("pitches_by_time");
 
                     List<Float> listResults = new ArrayList<Float>();
@@ -223,7 +223,7 @@ public class MainMenuActivity extends AppCompatActivity {
                         for (int i = 0; i <scores.length(); i++)
                             listResults.add(Float.parseFloat(scores.get(i).toString()));
                     }
-                    challengeList.add(new Challenge(Integer.parseInt(from), Integer.parseInt(to), Integer.parseInt(challengeId), listResults));
+                    challengeList.add(new Challenge(Integer.parseInt(from), Integer.parseInt(to), challengeId, listResults));
                 }
             }
             return challengeList;

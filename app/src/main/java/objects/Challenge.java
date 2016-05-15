@@ -8,10 +8,10 @@ import java.util.List;
 public class Challenge {
 
     private int fromUser, toUser;
-    private int challengeId;
+    private String challengeId;
     private List<Float> pitchesByTime;
 
-    public Challenge(int fromUser, int toUser, int challengeId, List<Float> pitchesByTime) {
+    public Challenge(int fromUser, int toUser, String challengeId, List<Float> pitchesByTime) {
         this.fromUser = fromUser;
         this.toUser = toUser;
         this.challengeId = challengeId;
@@ -34,11 +34,11 @@ public class Challenge {
         this.toUser = toUser;
     }
 
-    public int getChallengeId() {
+    public String getChallengeId() {
         return challengeId;
     }
 
-    public void setChallengeId(int challengeId) {
+    public void setChallengeId(String challengeId) {
         this.challengeId = challengeId;
     }
 
