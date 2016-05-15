@@ -13,6 +13,6 @@ public class OnsetPitchPair {
     }
     @Override
     public String toString()  {
-        return onsetTimeMs + ": " + pitchInHz;
+        return String.valueOf(onsetTimeMs) + ": " + String.valueOf(pitchInHz);
     }
 }

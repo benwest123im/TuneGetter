@@ -20,7 +20,9 @@ import com.leff.midi.event.NoteOn;
 import com.leff.midi.util.MidiUtil;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -71,7 +73,7 @@ public class MainMenuActivity extends AppCompatActivity {
         mRecordButton = (Button)findViewById(R.id.record);
         mPlayButton = (Button)findViewById(R.id.play);
 
-        mRecordButton.setOnClickListener(new View.OnClickListener() {
+        /*mRecordButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onRecord(mStartRecording);
@@ -103,6 +105,7 @@ public class MainMenuActivity extends AppCompatActivity {
         AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050,1024,0);
 
 
+
         PitchDetectionHandler pdh = new PitchDetectionHandler() {
             @Override
             public void handlePitch(PitchDetectionResult result, AudioEvent e) {
@@ -118,16 +121,34 @@ public class MainMenuActivity extends AppCompatActivity {
         };
         AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, pdh);
         dispatcher.addAudioProcessor(p);
-        new Thread(dispatcher,"Audio Dispatcher").start();
+        new Thread(dispatcher,"Audio Dispatcher").start();*/
 
 
         //TEST: test parsing here
 
-        File input = new File("assets/queen_voice_only_popravek.mid");
-        OnsetPitchPair[] result = parseMIDI_file(input);
+        OnsetPitchPair[] result = parseMIDI_file(extractFromAssets("queen_voice_only_popravek.mid"));
         for (int i = 0; i < result.length; i++) {
             Log.d("Polje "+ i + ": ",result[i].toString());
         }
+    }
+
+    private File extractFromAssets(String filename) {
+        File f = new File(getCacheDir()+ filename);
+        if (!f.exists()) try {
+
+            InputStream is = getAssets().open(filename);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+
+
+            FileOutputStream fos = new FileOutputStream(f);
+            fos.write(buffer);
+            fos.close();
+        } catch (Exception e) { throw new RuntimeException(e); }
+
+        return f;
     }
 
     @Override
@@ -205,7 +226,7 @@ public class MainMenuActivity extends AppCompatActivity {
     }
 
     public double midiNoteToHz(int midiNote) {
-        return Math.pow(2, (midiNote - 69) / 12)*440;
+        return Math.pow(2, (midiNote - 69.0) / 12.0)*440;
     }
 
 
@@ -245,9 +266,7 @@ public class MainMenuActivity extends AppCompatActivity {
                     pitchOfCurrent = 0;
                 }
                 addedPair = new OnsetPitchPair(noteOnset, pitchOfCurrent);
-                if (addedPair.onsetTimeMs - parsedArray.get(parsedArray.size()- 1).onsetTimeMs <= 10) {
-                    parsedArray.set(parsedArray.size() - 1, addedPair);
-                } else {
+                if (!(addedPair.pitchInHz == 0 && parsedArray.get(parsedArray.size()-1).pitchInHz == 0)) {
                     parsedArray.add(addedPair);
                 }
             }
