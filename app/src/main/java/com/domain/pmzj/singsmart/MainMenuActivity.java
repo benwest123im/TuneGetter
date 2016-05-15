@@ -14,7 +14,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,6 +39,7 @@ import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 import be.tarsos.dsp.pitch.PitchDetectionHandler;
 import be.tarsos.dsp.pitch.PitchDetectionResult;
 import be.tarsos.dsp.pitch.PitchProcessor;
+import objects.Challenge;
 import objects.UserResult;
 import utils.Params;
 
@@ -63,6 +66,7 @@ public class MainMenuActivity extends AppCompatActivity {
     private Button getButton = null;
 
     private Button lessonsButton = null;
+    private ListView challengeList = null;
     boolean mStartRecording = true;
     boolean mStartPlaying = true;
 
@@ -80,6 +84,8 @@ public class MainMenuActivity extends AppCompatActivity {
         sendButton = (Button)findViewById(R.id.send_button);
         getButton = (Button)findViewById(R.id.get_button);
         lessonsButton = (Button)findViewById(R.id.lessons_button);
+        challengeList = (ListView)findViewById(R.id.challengeList);
+
 
         mRecordButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -147,16 +153,85 @@ public class MainMenuActivity extends AppCompatActivity {
         });
 
 
-//        new Timer().scheduleAtFixedRate(new TimerTask() {
-//            @Override
-//            public void run() {
-//                new HttpAsyncTaskPost().execute("http://52.37.232.67/results?user_id=1");
-//
-//            }
-//        }, 0, 1000);
+        new Timer().scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+//                List<Challenge> challenges = getChallengesForUser(Params.CURR_USER_ID);
+                final List<Challenge> challenges = new ArrayList<Challenge>();
+
+                float[] tmp = new float[]{0.3f, 0f, 0.9f, 1.0f};
+                List<Float> lst = new ArrayList<Float>();
+                for (int i = 0; i < tmp.length; i++)
+                    lst.add(tmp[i]);
+
+                Challenge c = new Challenge(0, Params.CURR_USER_ID, 1, lst);
+                challenges.add(c);
+
+                if (Math.random() < 0.5) {
+                    Challenge c2 = new Challenge(3, Params.CURR_USER_ID, 5, lst);
+                    challenges.add(c2);
+
+                    if(Math.random() < 0.5)
+                        challenges.add(c2);
+
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        fillChallengeList(challenges);
+                    }
+                });
+            }
+        }, 0, 1000);
 
     }
 
+    private void fillChallengeList(List<Challenge> challenges) {
+        List<String> scores = new ArrayList<String>();
+
+        for(Challenge c : challenges) {
+            scores.add("Challenge " + c.getChallengeId() + " from " + c.getFromUser());
+        }
+
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+                this,
+                android.R.layout.simple_list_item_1,
+                scores);
+
+        // Bind to our new adapter.
+        challengeList.setAdapter(arrayAdapter);
+    }
+
+    private List<Challenge> getChallengesForUser(int userId) {
+        List<Challenge> challengeList = new ArrayList<>();
+        String url = Params.SERVER + Params.GET_CHALLENGES + "?user_id=" + userId;
+        try {
+            JSONObject result = new HttpHandler.HttpAsyncTaskGet().execute(url).get();
+            JSONArray challenges = result.getJSONArray("challenges");
+
+            if (challenges != null) {
+                for (int k = 0; k < challenges.length(); k++) {
+                    JSONObject jo = challenges.getJSONObject(k);
+
+                    String from = jo.getString("from_user_id");
+                    String to = jo.getString("to_user_id");
+                    String challengeId = jo.getString("challenge_id");
+                    JSONArray scores = jo.getJSONArray("pitches_by_time");
+
+                    List<Float> listResults = new ArrayList<Float>();
+                    if (scores != null) {
+                        for (int i = 0; i <scores.length(); i++)
+                            listResults.add(Float.parseFloat(scores.get(i).toString()));
+                    }
+                    challengeList.add(new Challenge(Integer.parseInt(from), Integer.parseInt(to), Integer.parseInt(challengeId), listResults));
+                }
+            }
+            return challengeList;
+        } catch (InterruptedException | ExecutionException | JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
 
     private boolean publishUserResult(UserResult result) {
