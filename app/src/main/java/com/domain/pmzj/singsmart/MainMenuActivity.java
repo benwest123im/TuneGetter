@@ -19,7 +19,18 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.leff.midi.MidiFile;
+import com.leff.midi.MidiTrack;
+import com.leff.midi.event.MidiEvent;
+import com.leff.midi.event.NoteOff;
+import com.leff.midi.event.NoteOn;
+import com.leff.midi.event.meta.Tempo;
+import com.leff.midi.util.MidiUtil;
+
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
@@ -193,4 +204,58 @@ public class MainMenuActivity extends AppCompatActivity {
         }
     }
 
+    public double midiNoteToHz(int midiNote) {
+        return Math.pow(2, (midiNote - 69) / 12)*440;
+    }
+
+
+    public OnsetPitchPair[] parseMIDI_file(File input) {
+        ArrayList<OnsetPitchPair> parsedArray = new ArrayList<OnsetPitchPair>();
+        MidiFile sourceMidiFile = null;
+        try {
+            sourceMidiFile = new MidiFile(input);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        int PPQ = sourceMidiFile.getResolution();
+        int bpm = 60;
+
+        MidiTrack trackToParse = sourceMidiFile.getTracks().get(0);
+        Iterator<MidiEvent> iter = trackToParse.getEvents().iterator();
+
+        double pitchOfCurrent = 0;
+        long tickOfCurrent = 0;
+
+        long noteOnset = MidiUtil.ticksToMs(tickOfCurrent, MidiUtil.bpmToMpqn(bpm), PPQ);
+
+        OnsetPitchPair addedPair = new OnsetPitchPair(noteOnset, pitchOfCurrent);
+        parsedArray.add(addedPair);
+
+        while(iter.hasNext()) {
+            MidiEvent event = iter.next();
+
+            if (event instanceof NoteOn || event instanceof NoteOff) {
+                tickOfCurrent = event.getTick();
+                noteOnset = MidiUtil.ticksToMs(tickOfCurrent, MidiUtil.bpmToMpqn(bpm), PPQ);
+
+                if (event instanceof NoteOn) {
+                    pitchOfCurrent = midiNoteToHz(((NoteOn) event).getNoteValue());
+                }
+                if (event instanceof NoteOff) {
+                    pitchOfCurrent = 0;
+                }
+                addedPair = new OnsetPitchPair(noteOnset, pitchOfCurrent);
+                if (addedPair.onset - parsedArray.get(parsedArray.size()- 1).onset <= 10) {
+                    parsedArray.set(parsedArray.size() - 1, addedPair);
+                } else {
+                    parsedArray.add(addedPair);
+                }
+            }
+        }
+        OnsetPitchPair[] returnArray = new OnsetPitchPair[parsedArray.size()];
+        for (int i = 0; i < parsedArray.size(); i++) {
+            returnArray[i] = parsedArray.get(i);
+        }
+        return returnArray;
+    }
 }
