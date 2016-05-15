@@ -15,6 +15,9 @@ import com.leff.midi.event.NoteOff;
 import com.leff.midi.event.NoteOn;
 import com.leff.midi.util.MidiUtil;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 import java.io.File;
@@ -35,6 +38,8 @@ import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 import be.tarsos.dsp.pitch.PitchDetectionHandler;
 import be.tarsos.dsp.pitch.PitchDetectionResult;
 import be.tarsos.dsp.pitch.PitchProcessor;
+import objects.UserResult;
+import utils.Params;
 
 public class PlayActivity extends AppCompatActivity {
 
@@ -125,6 +130,9 @@ public class PlayActivity extends AppCompatActivity {
                                                         double la = (Math.random()*0.20 + 0.60)*100;
                                                         double[] vektor = evaluate(result);
                                                         playView.setText("Your score is: " +  (int)la + "");
+
+                                                        UserResult ur = new UserResult(Params.CURR_USER_ID, 1, (float)la, new ArrayList<Float>());
+                                                        publishUserResult(ur);
                                                     }
                                                 });
                                             }
@@ -276,5 +284,33 @@ public class PlayActivity extends AppCompatActivity {
         relativnaPravilnost = stPravilnih / timePitch.size();
 
         return measure;
+    }
+
+    private boolean publishUserResult(UserResult result) {
+        String url = Params.SERVER + Params.POST_RESULTS;
+
+        // 3. build jsonObject
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.accumulate("user_id", result.getUserId() + "");
+            jsonObject.accumulate("challenge_id", result.getChallengeId() + "");
+            jsonObject.accumulate("score", result.getScore() + "");
+
+            String s = "[";
+            JSONArray array = new JSONArray();
+
+            for (Float f : result.getScoresByTime())
+                s += f + ",";
+            s = s.substring(0, s.length()-1) + "]";
+            jsonObject.accumulate("scores_by_time", new JSONArray("[]"));
+            Log.d("lala", jsonObject.toString());
+
+            new HttpHandler.HttpAsyncTaskPost(jsonObject).execute(url);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+
     }
 }
