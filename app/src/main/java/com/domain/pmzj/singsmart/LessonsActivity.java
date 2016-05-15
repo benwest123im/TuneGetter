@@ -29,8 +29,12 @@ public class LessonsActivity extends ListActivity {
 
         List<UserResult> listResult = getResultsForUser(Params.CURR_USER_ID);
         List<String> scores = new ArrayList<String>();
-        for(int i = 0; i < Params.NUM_LESSONS; i++)
-            scores.add("Lesson " + i);
+
+        scores.add("Damjan Murko - Srecen, da sem moski!");
+        scores.add("Queen - We're the champions");
+        scores.add("Fredi Miler - Srnica");
+        scores.add("John Coltrane - Giant Steps");
+        scores.add("Mile Kitic - Plava Ciganka");
 
         for(UserResult ur : listResult) {
             if (ur.getChallengeId() < Params.NUM_LESSONS) {

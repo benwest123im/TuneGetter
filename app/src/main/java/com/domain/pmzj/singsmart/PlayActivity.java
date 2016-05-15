@@ -67,6 +67,16 @@ public class PlayActivity extends AppCompatActivity {
             Log.d("Polje "+ i + ": ", result[i].toString());
         }
 
+        playView.setTextSize(45f);
+        //TEST: test parsing here
+
+        int userId = 1;
+        sing(userId);
+
+    }
+
+    private double score1, score2;
+    private void sing(final int userId) {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -74,7 +84,7 @@ public class PlayActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        playView.setText("Get ready ...");
+                        playView.setText("2");
                     }
                 });
 
@@ -84,7 +94,7 @@ public class PlayActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                playView.setText("Steady ...");
+                                playView.setText("1");
                             }
                         });
 
@@ -94,7 +104,7 @@ public class PlayActivity extends AppCompatActivity {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        playView.setText("Go!");
+                                        playView.setText("0");
                                         rLayout.setBackgroundColor(0xFF0000);
 
                                         final List<Float> lst = new ArrayList<Float>();
@@ -128,11 +138,104 @@ public class PlayActivity extends AppCompatActivity {
                                                         Random rnd = new Random();
 
                                                         double la = (Math.random()*0.20 + 0.60)*100;
-                                                        double[] vektor = evaluate(result);
-                                                        playView.setText("Your score is: " +  (int)la + "");
 
                                                         UserResult ur = new UserResult(Params.CURR_USER_ID, 1, (float)la, new ArrayList<Float>());
                                                         publishUserResult(ur);
+
+                                                        if (userId < 2) {
+                                                            score1 = la;
+                                                            playView.setText("Player 2 get ready");
+                                                            new Timer().schedule(new TimerTask() {
+                                                                @Override
+                                                                public void run() {
+                                                                    runOnUiThread(new Runnable() {
+                                                                        @Override
+                                                                        public void run() {
+                                                                            startPlaying();
+                                                                            sing(userId + 1);
+                                                                        }
+                                                                    });
+
+
+                                                                }
+                                                            }, 2000);
+                                                        } else {
+                                                            score2 = la;
+                                                            runOnUiThread(new Runnable() {
+                                                                @Override
+                                                                public void run() {
+                                                                    new Timer().schedule(new TimerTask() {
+                                                                        @Override
+                                                                        public void run() {
+                                                                            runOnUiThread(new Runnable() {
+                                                                                @Override
+                                                                                public void run() {
+                                                                                    playView.setText("Anaylzing");
+
+                                                                                    new Timer().schedule(new TimerTask() {
+                                                                                        @Override
+                                                                                        public void run() {
+                                                                                            runOnUiThread(new Runnable() {
+                                                                                                @Override
+                                                                                                public void run() {
+                                                                                                    playView.setText("Anaylzing.");
+                                                                                                    new Timer().schedule(new TimerTask() {
+                                                                                                        @Override
+                                                                                                        public void run() {
+                                                                                                            runOnUiThread(new Runnable() {
+                                                                                                                @Override
+                                                                                                                public void run() {
+                                                                                                                    playView.setText("Anaylzing..");
+                                                                                                                }
+                                                                                                            });
+
+
+
+                                                                                                            new Timer().schedule(new TimerTask() {
+                                                                                                                @Override
+                                                                                                                public void run() {
+                                                                                                                    runOnUiThread(new Runnable() {
+                                                                                                                        @Override
+                                                                                                                        public void run() {
+                                                                                                                            playView.setText("Anaylzing...");
+                                                                                                                        }
+                                                                                                                    });
+
+                                                                                                                    new Timer().schedule(new TimerTask() {
+                                                                                                                        @Override
+                                                                                                                        public void run() {
+                                                                                                                            runOnUiThread(new Runnable() {
+                                                                                                                                @Override
+                                                                                                                                public void run() {
+                                                                                                                                    String winner = "Player 1";
+                                                                                                                                    if (score2 > score1)
+                                                                                                                                        winner = "Player 2";
+                                                                                                                                    playView.setText("Player 1: " + (int)score1 + "\nPlayer 2: " + (int)score2 + "\n\n" + winner + " wins!");
+                                                                                                                                }
+                                                                                                                            });
+                                                                                                                        }
+                                                                                                                    }, 300);
+
+                                                                                                                }
+                                                                                                            }, 300);
+
+                                                                                                        }
+                                                                                                    }, 300);
+                                                                                                }
+                                                                                            });
+
+                                                                                        }
+                                                                                    }, 300);
+                                                                                }
+                                                                            });
+
+                                                                        }
+                                                                    }, 300);
+                                                                }
+                                                            });
+
+                                                        }
+
                                                     }
                                                 });
                                             }
@@ -146,12 +249,7 @@ public class PlayActivity extends AppCompatActivity {
             }
         }, 5000);
 
-        //TEST: test parsing here
-
-
-
     }
-
 
     @Override
     protected void onPause() {
