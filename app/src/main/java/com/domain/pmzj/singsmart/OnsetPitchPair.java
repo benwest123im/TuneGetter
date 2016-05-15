@@ -11,8 +11,8 @@ public class OnsetPitchPair {
         this.onsetTimeMs = onsetTimeMs;
         this.pitchInHz = pitchInHz;
     }
-
-    public String toString() @Override {
+    @Override
+    public String toString()  {
         return onsetTimeMs + ": " + pitchInHz;
     }
 }
