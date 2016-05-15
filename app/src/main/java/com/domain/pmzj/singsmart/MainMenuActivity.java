@@ -113,7 +113,7 @@ public class MainMenuActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         TextView text = (TextView) findViewById(R.id.textView);
-                        text.setText(" "+pitchInHz+" ");
+                        text.setText("" + pitchInHz);
                     }
                 });
                 timePitch.add(((double)pitchInHz));
@@ -123,9 +123,8 @@ public class MainMenuActivity extends AppCompatActivity {
         AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, pdh);
         dispatcher.addAudioProcessor(p);
         new Thread(dispatcher,"Audio Dispatcher").start();
+
     }
-
-
 
 
 
