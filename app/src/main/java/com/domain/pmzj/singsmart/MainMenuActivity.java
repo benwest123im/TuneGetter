@@ -151,7 +151,8 @@ public class MainMenuActivity extends AppCompatActivity {
             int j = 0; //j bo index za nas trenutni refrencePitch
             while( opp[j].onsetTimeMs < tms )j++;
             //measure that shit
-            measure[i] = tuningCent(opp[j].pitchInHz, timePitch.get(i));
+            if(opp[j].pitchInHz!=0)measure[i] = tuningCent(opp[j].pitchInHz, timePitch.get(i));
+            else measure[i] = 0;
             if( Math.abs(measure[i]) < 5 ) stPravilnih++;
         }
 
