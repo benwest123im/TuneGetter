@@ -75,7 +75,8 @@ public class MainMenuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         mFileName = Environment.getExternalStorageDirectory().getAbsolutePath();
-        mFileName += "/audiorecordtest.3gp";
+//        mFileName += "/audiorecordtest.3gp";
+        mFileName += "/Download/Queen_VoiceOnly_Popravek.mid";
 
         setContentView(R.layout.activity_main_menu);
 
@@ -116,24 +117,24 @@ public class MainMenuActivity extends AppCompatActivity {
             }
         });
 
-        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050,1024,0);
-
-        PitchDetectionHandler pdh = new PitchDetectionHandler() {
-            @Override
-            public void handlePitch(PitchDetectionResult result, AudioEvent e) {
-                final float pitchInHz = result.getPitch();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        TextView text = (TextView) findViewById(R.id.textView);
-                        text.setText("" + pitchInHz);
-                    }
-                });
-            }
-        };
-        AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, pdh);
-        dispatcher.addAudioProcessor(p);
-        new Thread(dispatcher,"Audio Dispatcher").start();
+//        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050,1024,0);
+//
+//        PitchDetectionHandler pdh = new PitchDetectionHandler() {
+//            @Override
+//            public void handlePitch(PitchDetectionResult result, AudioEvent e) {
+//                final float pitchInHz = result.getPitch();
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        TextView text = (TextView) findViewById(R.id.textView);
+//                        text.setText("" + pitchInHz);
+//                    }
+//                });
+//            }
+//        };
+//        AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, pdh);
+//        dispatcher.addAudioProcessor(p);
+//        new Thread(dispatcher,"Audio Dispatcher").start();
 
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override

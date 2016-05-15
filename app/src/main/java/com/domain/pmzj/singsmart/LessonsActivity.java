@@ -1,10 +1,13 @@
 package com.domain.pmzj.singsmart;
 
 import android.app.ListActivity;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
+import android.widget.ListView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,6 +46,12 @@ public class LessonsActivity extends ListActivity {
 
         // Bind to our new adapter.
         setListAdapter(arrayAdapter);
+    }
+
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        Intent intent = new Intent(this, PlayActivity.class);
+        startActivity(intent);
     }
 
     private List<UserResult> getResultsForUser(int userId) {
