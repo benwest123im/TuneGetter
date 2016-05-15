@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,12 +26,23 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.leff.midi.MidiFile;
+import com.leff.midi.MidiTrack;
+import com.leff.midi.event.MidiEvent;
+import com.leff.midi.event.NoteOff;
+import com.leff.midi.event.NoteOn;
+import com.leff.midi.util.MidiUtil;
+
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
+import java.io.InputStream;
+import java.util.Iterator;
 
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
@@ -88,7 +100,7 @@ public class MainMenuActivity extends AppCompatActivity {
         challengeList = (ListView)findViewById(R.id.challengeList);
 
 
-        mRecordButton.setOnClickListener(new View.OnClickListener() {
+        /*mRecordButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onRecord(mStartRecording);
@@ -155,6 +167,7 @@ public class MainMenuActivity extends AppCompatActivity {
 
 
         new Timer().scheduleAtFixedRate(new TimerTask() {
+
             @Override
             public void run() {
                 final List<Challenge> challenges = getChallengesForUser(Params.CURR_USER_ID);
@@ -260,6 +273,33 @@ public class MainMenuActivity extends AppCompatActivity {
             return false;
         }
         return true;
+
+
+        //TEST: test parsing here
+
+        OnsetPitchPair[] result = parseMIDI_file(extractFromAssets("queen_voice_only_popravek.mid"));
+        for (int i = 0; i < result.length; i++) {
+            Log.d("Polje "+ i + ": ",result[i].toString());
+        }
+    }
+
+    private File extractFromAssets(String filename) {
+        File f = new File(getCacheDir()+ filename);
+        if (!f.exists()) try {
+
+            InputStream is = getAssets().open(filename);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+
+
+            FileOutputStream fos = new FileOutputStream(f);
+            fos.write(buffer);
+            fos.close();
+        } catch (Exception e) { throw new RuntimeException(e); }
+
+        return f;
     }
 
     @Override
@@ -346,5 +386,58 @@ public class MainMenuActivity extends AppCompatActivity {
         Intent intent = new Intent(this, SendChallengeActivity.class);
         startActivity(intent);
 
+    }
+}
+    public double midiNoteToHz(int midiNote) {
+        return Math.pow(2, (midiNote - 69.0) / 12.0)*440;
+    }
+
+
+    public OnsetPitchPair[] parseMIDI_file(File input) {
+        ArrayList<OnsetPitchPair> parsedArray = new ArrayList<OnsetPitchPair>();
+        MidiFile sourceMidiFile = null;
+        try {
+            sourceMidiFile = new MidiFile(input);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        int PPQ = sourceMidiFile.getResolution();
+        int bpm = 90;
+
+        MidiTrack trackToParse = sourceMidiFile.getTracks().get(0);
+        Iterator<MidiEvent> iter = trackToParse.getEvents().iterator();
+
+        double pitchOfCurrent = 0;
+        long tickOfCurrent = 0;
+
+        long noteOnset = MidiUtil.ticksToMs(tickOfCurrent, MidiUtil.bpmToMpqn(bpm), PPQ);
+
+        OnsetPitchPair addedPair = new OnsetPitchPair(noteOnset, pitchOfCurrent);
+        parsedArray.add(addedPair);
+
+        while(iter.hasNext()) {
+            MidiEvent event = iter.next();
+
+            if (event instanceof NoteOn || event instanceof NoteOff) {
+                tickOfCurrent = event.getTick();
+                noteOnset = MidiUtil.ticksToMs(tickOfCurrent, MidiUtil.bpmToMpqn(bpm), PPQ);
+
+                if (event instanceof NoteOn) {
+                    pitchOfCurrent = midiNoteToHz(((NoteOn) event).getNoteValue());
+                }
+                if (event instanceof NoteOff) {
+                    pitchOfCurrent = 0;
+                }
+                addedPair = new OnsetPitchPair(noteOnset, pitchOfCurrent);
+                if (!(addedPair.pitchInHz == 0 && parsedArray.get(parsedArray.size()-1).pitchInHz == 0)) {
+                    parsedArray.add(addedPair);
+                }
+            }
+        }
+        OnsetPitchPair[] returnArray = new OnsetPitchPair[parsedArray.size()];
+        for (int i = 0; i < parsedArray.size(); i++) {
+            returnArray[i] = parsedArray.get(i);
+        }
+        return returnArray;
     }
 }
