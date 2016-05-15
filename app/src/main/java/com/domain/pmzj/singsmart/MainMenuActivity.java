@@ -120,6 +120,14 @@ public class MainMenuActivity extends AppCompatActivity {
         dispatcher.addAudioProcessor(p);
         new Thread(dispatcher,"Audio Dispatcher").start();
 
+
+        //TEST: test parsing here
+
+        File input = new File("assets/queen_voice_only_popravek.mid");
+        OnsetPitchPair[] result = parseMIDI_file(input);
+        for (int i = 0; i < result.length; i++) {
+            Log.d("Polje "+ i + ": ",result[i]);
+        }
     }
 
     @Override

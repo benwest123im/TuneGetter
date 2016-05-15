@@ -5,10 +5,14 @@ package com.domain.pmzj.singsmart;
  */
 public class OnsetPitchPair {
     public long onsetTimeMs;
-    public double pitch;
+    public double pitchInHz;
 
-    public OnsetPitchPair(long onsetTimeMs, double pitch) {
+    public OnsetPitchPair(long onsetTimeMs, double pitchInHz) {
         this.onsetTimeMs = onsetTimeMs;
-        this.pitch = pitch;
+        this.pitchInHz = pitchInHz;
+    }
+
+    public String toString() @Override {
+        return onsetTimeMs + ": " + pitchInHz;
     }
 }
