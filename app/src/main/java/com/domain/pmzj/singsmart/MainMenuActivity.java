@@ -1,21 +1,14 @@
 package com.domain.pmzj.singsmart;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Environment;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -24,7 +17,6 @@ import com.leff.midi.MidiTrack;
 import com.leff.midi.event.MidiEvent;
 import com.leff.midi.event.NoteOff;
 import com.leff.midi.event.NoteOn;
-import com.leff.midi.event.meta.Tempo;
 import com.leff.midi.util.MidiUtil;
 
 import java.io.File;
@@ -245,7 +237,7 @@ public class MainMenuActivity extends AppCompatActivity {
                     pitchOfCurrent = 0;
                 }
                 addedPair = new OnsetPitchPair(noteOnset, pitchOfCurrent);
-                if (addedPair.onset - parsedArray.get(parsedArray.size()- 1).onset <= 10) {
+                if (addedPair.onsetTimeMs - parsedArray.get(parsedArray.size()- 1).onsetTimeMs <= 10) {
                     parsedArray.set(parsedArray.size() - 1, addedPair);
                 } else {
                     parsedArray.add(addedPair);

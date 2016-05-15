@@ -4,11 +4,11 @@ package com.domain.pmzj.singsmart;
  * Created by Martin on 14. 05. 2016.
  */
 public class OnsetPitchPair {
-    public long onset;
+    public long onsetTimeMs;
     public double pitch;
 
-    public OnsetPitchPair(long onset, double pitch) {
-        this.onset = onset;
+    public OnsetPitchPair(long onsetTimeMs, double pitch) {
+        this.onsetTimeMs = onsetTimeMs;
         this.pitch = pitch;
     }
 }
